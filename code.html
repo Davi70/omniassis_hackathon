@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Seguridad Transporte Público - Versión Inteligencia Colectiva</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  :root {
+    --color-bg: #0d1117;
+    --color-bg-panel: #161b22;
+    --color-text-primary: #f0f6fc;
+    --color-text-secondary: #8b949e;
+    --color-accent: #1db954; /* Uber greenish accent */
+    --color-danger: #d73a49;
+    --color-warning: #dbab09;
+    --color-card-bg: #21262d;
+    --color-shadow: rgba(0,0,0,0.6);
+    --font-family: 'Inter', sans-serif;
+  }
+
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+  a:hover,
+  a:focus {
+    text-decoration: underline;
+  }
+
+  /* Header */
+  header {
+    background: var(--color-bg-panel);
+    padding: 0.75rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 101;
+    box-shadow: 0 2px 6px var(--color-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--color-accent);
+    letter-spacing: 1.5px;
+  }
+
+  nav.desktop-nav {
+    display: flex;
+    gap: 2rem;
+  }
+  nav.desktop-nav a {
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 4px;
+    border-radius: 6px;
+    transition: background-color 0.25s ease;
+  }
+  nav.desktop-nav a.active,
+  nav.desktop-nav a:hover,
+  nav.desktop-nav a:focus {
+    background-color: var(--color-accent);
+    color: var(--color-bg-panel);
+    outline-offset: 2px;
+    outline: 2px solid var(--color-accent);
+  }
+
+  button#mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--color-text-primary);
+  }
+
+  /* Mobile navigation overlay */
+  .mobile-nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: var(--color-bg-panel);
+    z-index: 120;
+    flex-direction: column;
+    padding: 3rem 2rem 2rem;
+    overflow-y: auto;
+  }
+  .mobile-nav-overlay.show {
+    display: flex;
+  }
+  .mobile-nav-overlay a {
+    font-size: 1.4rem;
+    font-weight: 700;
+    padding: 16px 8px;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid #394450;
+  }
+  .mobile-nav-overlay a:last-child {
+    border-bottom: none;
+  }
+  .mobile-nav-close {
+    align-self: flex-end;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    margin-bottom: 1rem;
+  }
+
+  /* Main layout */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 1200px;
+    margin: 2rem auto 3rem;
+    gap: 2rem;
+    padding: 0 1.5rem;
+  }
+  @media(min-width: 768px) {
+    main {
+      grid-template-columns: 1fr 320px;
+      max-width: 1400px;
+      gap: 3rem;
+    }
+  }
+  @media(min-width: 1024px) {
+    main {
+      grid-template-columns: 1fr 380px;
+      padding: 0 2rem;
+      gap: 4rem;
+    }
+  }
+
+  /* Left panel: Form, Map, Routes, Vehicles */
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Input card */
+  .card {
+    background: var(--color-card-bg);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px var(--color-shadow);
+    padding: 1.75rem 1.5rem 2rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+  input[type=text] {
+    background: #1c222b;
+    border: 1px solid #303841;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    outline-offset: 2px;
+    outline-color: transparent;
+    transition: outline-color 0.25s ease;
+  }
+  input[type=text]:focus,
+  input[type=text]:hover {
+    outline-color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  button {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-bg);
+    background: var(--color-accent);
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  button:focus-visible {
+    outline-offset: 3px;
+    outline: 3px solid var(--color-accent);
+  }
+  button:hover:not(:disabled) {
+    background: #17a64a;
+  }
+  button:disabled {
+    background: #397c4e;
+    cursor: not-allowed;
+  }
+
+  /* Routes list */
+  .routes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .route-card {
+    background: #161b22;
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: box-shadow 0.25s ease;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+  }
+  .route-card:hover,
+  .route-card.selected {
+    box-shadow: 0 0 14px 3px var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  .route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .route-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+  .route-destination {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    max-width: 75%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .route-info {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+  }
+  .route-schedule {
+    font-weight: 600;
+  }
+
+  /* Vehicles live location display */
+  .vehicle-list {
+    margin-top: 1rem;
+  }
+  .vehicle-item {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #21262d;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Driver rating */
+  .rating-stars {
+    color: #ffc107;
+    font-size: 1.25rem;
+    margin-left: 5px;
+    user-select: none;
+    pointer-events: none;
+  }
+  .rating-text {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    margin-left: 10px;
+  }
+
+  /* Map placeholder */
+  .map {
+    border-radius: 14px;
+    overflow: hidden;
+    height: 300px;
+    background-color: #0a0f14;
+    position: relative;
+  }
+  .map img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .map-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    background: rgba(13, 17, 23, 0.8);
+    color: var(--color-text-primary);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
+  /* Right panel: Incident reports, panic button, risk areas */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Incident Reports List */
+  .reports-card {
+    background: var(--color-card-bg);
+    padding: 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px var(--color-shadow);
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  .reports-card h2 {
+    margin: 0 0 1rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+  .report-item {
+    border-bottom: 1px solid #303841;
+    padding: 12px 0;
+  }
+  .report-item:last-child {
+    border-bottom: none;
+  }
+  .report-meta {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--color-text-secondary);
+  }
+  .report-text {
+    margin-top: 4px;
+    font-size: 1rem;
+  }
+
+  /* Report form */
+  form#reportForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  textarea#reportDescription {
+    background: #1c222b;
+    border: 1px solid #303841;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    resize: vertical;
+    min-height: 80px;
+    outline-offset: 2px;
+    outline-color: transparent;
+  }
+  textarea#reportDescription:focus {
+    outline-color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+  select#reportType {
+    background: #1c222b;
+    border: 1px solid #303841;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+    outline-offset: 2px;
+    outline-color: transparent;
+  }
+  select#reportType:focus {
+    outline-color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  /* Panic button */
+  button#panicButton {
+    background: var(--color-danger);
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 0 20px var(--color-danger);
+    transition: box-shadow 0.3s ease;
+  }
+  button#panicButton:hover {
+    box-shadow: 0 0 30px #ff606f;
+  }
+  button#panicButton:focus-visible {
+    outline-offset: 3px;
+    outline: 3px solid var(--color-danger);
+  }
+
+  /* Risk pattern info */
+  .risk-zones-card {
+    background: var(--color-card-bg);
+    padding: 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px var(--color-shadow);
+  }
+  .risk-zones-card h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-warning);
+    margin-bottom: 1rem;
+  }
+  .risk-zone-item {
+    font-size: 0.95rem;
+    border-bottom: 1px solid #394450;
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  .risk-zone-desc {
+    max-width: 65%;
+  }
+
+  /* Accessibility and utilities */
+  .sr-only {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px,1px,1px,1px);
+    white-space: nowrap;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    border: 4px solid #303841;
+    border-top: 4px solid var(--color-accent);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1rem;
+  }
+  @keyframes spin {
+    0% {transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+</style>
+
+<!-- Material Icons CDN -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+</head>
+<body>
+
+<header>
+  <div class="logo" tabindex="0">SafeRide</div>
+  <nav class="desktop-nav" aria-label="Main navigation">
+    <a href="#" class="active" aria-current="page">Inicio</a>
+    <a href="#reports">Reportes</a>
+    <a href="#riskPatterns">Zonas de Riesgo</a>
+  </nav>
+  <button id="mobile-menu-toggle" aria-label="Abrir menú de navegación">
+    <span class="material-icons">menu</span>
+  </button>
+</header>
+
+<nav class="mobile-nav-overlay" aria-label="Navegación móvil" role="dialog" aria-modal="true">
+  <button class="mobile-nav-close" aria-label="Cerrar menú de navegación">
+    <span class="material-icons">close</span>
+  </button>
+  <a href="#" class="active" aria-current="page">Inicio</a>
+  <a href="#reports">Reportes</a>
+  <a href="#riskPatterns">Zonas de Riesgo</a>
+</nav>
+
+<main>
+  <section class="left-panel" aria-label="Panel principal">
+    <section class="card" aria-labelledby="searchTitle">
+      <h1 id="searchTitle" style="font-size:1.5rem; margin-bottom:1rem;">Buscar ruta segura</h1>
+      <form id="routeForm" aria-describedby="formDescription">
+        <p id="formDescription" class="sr-only">
+          Introduce tu ubicación de origen y destino para conocer rutas de transporte público cercanas, horarios, vehículos y alternativas.
+        </p>
+        <div class="input-group">
+          <label for="originInput">Origen</label>
+          <input type="text" id="originInput" name="origin" autocomplete="off" placeholder="Dirección o punto de partida" aria-required="true" />
+        </div>
+        <div class="input-group">
+          <label for="destinationInput">Destino</label>
+          <input type="text" id="destinationInput" name="destination" autocomplete="off" placeholder="Dirección o destino final" aria-required="true" />
+        </div>
+        <button type="submit" aria-label="Buscar rutas y horarios">Buscar</button>
+      </form>
+    </section>
+
+    <section id="mapSection" class="card" aria-label="Mapa de rutas y vehículos">
+      <div class="map" role="img" aria-label="Mapa mostrando rutas cercanas, ubicaciones de vehículos y puntos de interés">
+        <img id="mapImage" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/74afa322-3ef9-4d5a-a7c7-dba13eda9ca8.png" alt="Mapa con rutas de transporte público alrededor del usuario" />
+        <div class="map-overlay" id="mapOverlay">Cargando datos...</div>
+      </div>
+    </section>
+
+    <section id="routesSection" class="card" aria-label="Rutas disponibles">
+      <h2 style="margin-top:0; color: var(--color-accent); font-weight:800;">Rutas encontradas</h2>
+      <div class="routes-list" id="routesList" role="list" aria-live="polite" aria-relevant="additions">
+        <div class="spinner" aria-label="Cargando rutas"></div>
+      </div>
+    </section>
+
+    <section id="vehiclesSection" class="card" aria-label="Ubicaciones de vehículos en tiempo real" hidden>
+      <h2 style="margin-top:0; color: var(--color-accent); font-weight:800;">Vehículos cerca</h2>
+      <div class="vehicle-list" id="vehicleList" role="list" aria-live="polite" aria-relevant="additions">
+        <p>Cargando vehículos...</p>
+      </div>
+    </section>
+  </section>
+
+  <aside class="right-panel" aria-label="Panel de seguridad y reportes colaborativos">
+    <section class="reports-card" id="reports">
+      <h2>Reportes en tiempo real</h2>
+      <form id="reportForm" aria-label="Formulario para enviar reportes de incidentes">
+        <label for="reportType">Tipo de incidente</label>
+        <select id="reportType" name="reportType" required aria-required="true" aria-describedby="reportTypeHelp">
+          <option value="" disabled selected>Selecciona un tipo</option>
+          <option value="acoso">Acoso</option>
+          <option value="robo">Robo</option>
+          <option value="vandalismo">Vandalismo</option>
+          <option value="otro">Otro</option>
+        </select>
+        <div id="reportTypeHelp" class="sr-only">Selecciona el tipo de incidente que deseas reportar</div>
+
+        <label for="reportDescription">Descripción</label>
+        <textarea id="reportDescription" name="reportDescription" placeholder="Describe brevemente el incidente..." rows="3" required aria-required="true"></textarea>
+
+        <button type="submit" aria-label="Enviar reporte">Enviar reporte</button>
+      </form>
+      <div id="reportsList" aria-live="polite" style="margin-top:1rem;">
+        <p>Cargando reportes...</p>
+      </div>
+    </section>
+
+    <section aria-label="Botón de pánico">
+      <button id="panicButton" aria-label="Botón de pánico para alertar a las autoridades locales">
+        <span class="material-icons" aria-hidden="true" style="vertical-align:middle;">warning</span> Botón de Pánico
+      </button>
+    </section>
+
+    <section class="risk-zones-card" id="riskPatterns" aria-label="Información de zonas con patrones de riesgo">
+      <h2>Zonas y patrones de riesgo</h2>
+      <div id="riskZonesList">
+        <p>Cargando información...</p>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script>
+  'use strict';
+
+  // --- Utility Functions ---
+  function createElement(tag, options = {}) {
+    const el = document.createElement(tag);
+    if (options.classes) options.classes.forEach(c => el.classList.add(c));
+    if (options.text) el.textContent = options.text;
+    if (options.html) el.innerHTML = options.html;
+    if (options.attrs) {
+      for (const [k, v] of Object.entries(options.attrs)) {
+        el.setAttribute(k, v);
+      }
+    }
+    return el;
+  }
+
+  function formatTime24To12(time24) {
+    // time24 is string "HH:mm"
+    let [h, m] = time24.split(':').map(Number);
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m.toString().padStart(2,'0')} ${ampm}`;
+  }
+
+  function starRating(rating) {
+    const maxStars = 5;
+    let stars = '';
+    for(let i=0; i < maxStars; i++) {
+      stars += i < rating ? '★' : '☆';
+    }
+    return stars;
+  }
+
+  // --- Mock Data for Demonstration & Simulation ---
+
+  // Simulated known routes with stops and schedules
+  const ROUTES = [
+    {
+      id: 'L1',
+      name: 'Línea 1',
+      origin: 'Centro Histórico',
+      destination: 'Estación Norte',
+      stopsNearUser: ['Parada 5', 'Parada 6'],
+      schedule: ['06:00', '07:00', '08:30', '10:00', '12:00', '14:00', '16:30', '19:00', '21:00'],
+      typicalVehicleCount: 3,
+      driverName: 'José Martínez',
+      rating: 4,
+      vehicleId: 'BUS-101',
+      vehiclePosition: { lat: 19.4422, lng: -99.1340 },
+      riskZonesNearby: [
+        {zone: 'Zona parque central', riskLevel: 'Moderado', hours: '17:00 - 20:00'}
+      ]
+    },
+    {
+      id: 'L2',
+      name: 'Línea 2',
+      origin: 'Estación Sur',
+      destination: 'Plaza Las Américas',
+      stopsNearUser: ['Parada 10', 'Parada 11'],
+      schedule: ['05:30', '07:45', '09:00', '11:30', '13:00', '15:15', '17:45'],
+      typicalVehicleCount: 2,
+      driverName: 'María Gómez',
+      rating: 5,
+      vehicleId: 'BUS-209',
+      vehiclePosition: { lat: 19.4300, lng: -99.1400 },
+      riskZonesNearby: []
+    }, 
+    {
+      id: 'L3',
+      name: 'Línea 3',
+      origin: 'Terminal Este',
+      destination: 'Universidad Central',
+      stopsNearUser: ['Parada 15', 'Parada 16'],
+      schedule: ['06:00', '08:30', '11:00', '13:30', '16:00', '18:30'],
+      typicalVehicleCount: 1,
+      driverName: 'Ricardo Pérez',
+      rating: 3,
+      vehicleId: 'BUS-308',
+      vehiclePosition: { lat: 19.4400, lng: -99.1280 },
+      riskZonesNearby: [
+        {zone: 'Barrio Industrial', riskLevel: 'Alto', hours: '20:00 - 23:00'}
+      ]
+    }
+  ];
+
+  // Mock incident reports database shared
+  let INCIDENT_REPORTS = [
+    {
+      id: 1,
+      type: 'acoso',
+      description: 'Persona cercana acosando verbalmente en la parada.',
+      timestamp: Date.now() - 600000, // 10 min ago
+      location: 'Parada 5'
+    },
+    {
+      id: 2,
+      type: 'robo',
+      description: 'Robo a mano armada dentro del autobús.',
+      timestamp: Date.now() - 1200000, // 20 min ago
+      location: 'Línea 3 cerca de Parada 16'
+    }
+  ];
+
+  // Known risk patterns for zones
+  const RISK_PATTERNS = [
+    {
+      zone: 'Barrio Industrial',
+      description: 'Incidentes frecuentes de vandalismo y robos por la noche',
+      riskLevel: 'Alto',
+      hours: '20:00 - 23:59',
+    },
+    {
+      zone: 'Zona parque central',
+      description: 'Acoso reportado frecuentemente en las tardes',
+      riskLevel: 'Moderado',
+      hours: '17:00 - 20:00',
+    }
+  ];
+
+  // --- Main Application Logic ---
+
+  const $originInput = document.getElementById('originInput');
+  const $destinationInput = document.getElementById('destinationInput');
+  const $routeForm = document.getElementById('routeForm');
+  const $routesList = document.getElementById('routesList');
+  const $vehiclesSection = document.getElementById('vehiclesSection');
+  const $vehicleList = document.getElementById('vehicleList');
+  const $mapImage = document.getElementById('mapImage');
+  const $mapOverlay = document.getElementById('mapOverlay');
+
+  // Display list of reports
+  const $reportsList = document.getElementById('reportsList');
+  const $reportForm = document.getElementById('reportForm');
+
+  // Display risk zones info
+  const $riskZonesList = document.getElementById('riskZonesList');
+
+  // Panic button
+  const $panicButton = document.getElementById('panicButton');
+
+  // Mobile menu controls
+  const $mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const $mobileNavOverlay = document.querySelector('.mobile-nav-overlay');
+  const $mobileNavClose = document.querySelector('.mobile-nav-close');
+
+  // State for route selection
+  let currentSelectedRouteId = null;
+
+  // Simulate geolocation: Assume user's coordinates in city
+  const USER_LOCATION = { lat: 19.4326, lng: -99.1332 };
+
+  // Simulate fetching routes near user's location by matching stopsNearby with origin input keyword
+  function getRoutesNearby(originQuery) {
+    if (!originQuery) return [];
+    const q = originQuery.toLowerCase();
+    // Match if origin or stopsNearUser contain the query
+    return ROUTES.filter(route =>
+      route.origin.toLowerCase().includes(q) ||
+      route.stopsNearUser.some(stop => stop.toLowerCase().includes(q))
+    );
+  }
+
+  function renderRoutes(routes) {
+    $routesList.innerHTML = '';
+    if (!routes.length) {
+      const noRoute = createElement('p', { text: 'No se encontraron rutas cercanas para el origen indicado.' });
+      $routesList.appendChild(noRoute);
+      $vehiclesSection.hidden = true;
+      return;
+    }
+
+    routes.forEach(route => {
+      const card = createElement('div', { classes: ['route-card'], attrs: { role: 'listitem', tabindex: '0' } });
+      if (route.id === currentSelectedRouteId) {
+        card.classList.add('selected');
+        $vehiclesSection.hidden = false;
+      }
+      card.setAttribute('aria-label', `Ruta ${route.name}, de ${route.origin} a ${route.destination}, calificación del conductor ${route.rating} estrellas`);
+
+      // Route header
+      const header = createElement('div', { classes: ['route-header'] });
+      const name = createElement('span', { classes: ['route-name'], text: route.name });
+      const driverRating = createElement('span', { classes: ['rating-stars'], text: starRating(route.rating) });
+      header.appendChild(name);
+      header.appendChild(driverRating);
+
+      const dest = createElement('div', { classes: ['route-destination'], text: `${route.origin} → ${route.destination}` });
+      const stops = createElement('div', { classes: ['route-info'], html: `<strong>Paradas cercanas:</strong> ${route.stopsNearUser.join(', ')}` });
+      const scheduleStr = route.schedule.map(t => formatTime24To12(t)).join(', ');
+      const schedule = createElement('div', { classes: ['route-info', 'route-schedule'], html: `<strong>Horario:</strong> ${scheduleStr}` });
+
+      card.appendChild(header);
+      card.appendChild(dest);
+      card.appendChild(stops);
+      card.appendChild(schedule);
+
+      // Add click and key event to select route
+      card.addEventListener('click', () => {
+        currentSelectedRouteId = route.id;
+        renderRoutes(routes);
+        renderVehicles(route);
+        updateMap(route);
+        renderRiskZones(route.riskZonesNearby);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+
+      $routesList.appendChild(card);
+    });
+  }
+
+  // Render vehicle locations near user for selected route
+  function renderVehicles(route) {
+    $vehicleList.innerHTML = '';
+    if (!route) {
+      $vehiclesSection.hidden = true;
+      return;
+    }
+    $vehiclesSection.hidden = false;
+
+    // Simulate vehicle locations with some jitter around vehiclePosition
+    const vehicles = [];
+    for (let i=0; i<route.typicalVehicleCount; i++) {
+      vehicles.push({
+        id: route.vehicleId + '-' + i,
+        driver: route.driverName,
+        rating: route.rating,
+        position: {
+          lat: route.vehiclePosition.lat + (Math.random()-0.5)*0.01,
+          lng: route.vehiclePosition.lng + (Math.random()-0.5)*0.01
+        }
+      });
+    }
+
+    vehicles.forEach(v => {
+      const item = createElement('div', { classes: ['vehicle-item'], attrs: { role: 'listitem' } });
+      const text = createElement('span', { text: `Bus ID: ${v.id}, Conductor: ${v.driver}, Calificación: ${starRating(v.rating)}` });
+      const coords = createElement('small', { text: `(${v.position.lat.toFixed(4)}, ${v.position.lng.toFixed(4)})` });
+      coords.style.color = 'var(--color-text-secondary)';
+      coords.style.marginLeft = '10px';
+      item.appendChild(text);
+      item.appendChild(coords);
+      $vehicleList.appendChild(item);
+    });
+  }
+
+  // Update map placeholder info to simulate routes and vehicles
+  function updateMap(route) {
+    if (!route) {
+      $mapImage.src = 'https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/6e5df9c0-3168-4127-a280-4236732ee681.png';
+      $mapOverlay.textContent = 'Selecciona una ruta para ver detalles en el mapa.';
+      return;
+    }
+    // Use placeholder images with route name in text (simulate)
+    const mapText = `Ruta: ${route.name} (${route.origin} → ${route.destination})`;
+    $mapImage.src = `https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/530d89ce-7a4d-4c89-8e75-c30e6ee72129.png)}`;
+    $mapOverlay.textContent = 'Vehículos y paradas en tiempo real actualizándose...';
+  }
+
+  // Render risk zone warnings
+  function renderRiskZones(riskZones) {
+    const container = document.getElementById('riskZonesList');
+    container.innerHTML = '';
+    if (!riskZones || riskZones.length === 0) {
+      container.appendChild(createElement('p', { text: 'No se detectaron zonas de riesgo cercanas en la ruta seleccionada.'}));
+      return;
+    }
+    riskZones.forEach(r => {
+      const zoneDiv = createElement('div', { classes: ['risk-zone-item'] });
+      const desc = createElement('div', { classes: ['risk-zone-desc'], html: `<strong>${r.zone}</strong><br>${r.riskLevel} riesgo durante: ${r.hours}` });
+      zoneDiv.appendChild(desc);
+      container.appendChild(zoneDiv);
+    });
+  }
+
+  // Render global risk patterns (inside right panel)
+  function renderGlobalRiskPatterns() {
+    $riskZonesList.innerHTML = '';
+    RISK_PATTERNS.forEach(r => {
+      const zoneDiv = createElement('div', { classes: ['risk-zone-item'] });
+      const desc = createElement('div', { classes: ['risk-zone-desc'], html: `<strong>${r.zone}</strong><br>${r.description}<br><em>Horario: ${r.hours}</em>` });
+      zoneDiv.appendChild(desc);
+      $riskZonesList.appendChild(zoneDiv);
+    });
+  }
+
+  // Render the incident reports list in right panel
+  function renderReports() {
+    $reportsList.innerHTML = '';
+    if (INCIDENT_REPORTS.length === 0) {
+      $reportsList.appendChild(createElement('p', { text: 'No hay reportes recientes.' }));
+      return;
+    }
+    INCIDENT_REPORTS.slice(-10).reverse().forEach(report => {
+      const reportDiv = createElement('div', { classes: ['report-item'] });
+      const date = new Date(report.timestamp);
+      const dateStr = date.toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+      const meta = createElement('div', { classes: ['report-meta'], text: `${report.type.charAt(0).toUpperCase() + report.type.slice(1)} - ${report.location} - ${dateStr}` });
+      const desc = createElement('div', { classes: ['report-text'], text: report.description });
+      reportDiv.appendChild(meta);
+      reportDiv.appendChild(desc);
+      $reportsList.appendChild(reportDiv);
+    });
+  }
+
+  // Form handler for route search
+  $routeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const originVal = $originInput.value.trim();
+    const destVal = $destinationInput.value.trim();
+
+    if (!originVal || !destVal) {
+      alert('Por favor, ingresa origen y destino.');
+      return;
+    }
+    currentSelectedRouteId = null;
+    $vehiclesSection.hidden = true;
+    $routesList.innerHTML = '<div class="spinner" aria-label="Cargando rutas"></div>';
+    $mapOverlay.textContent = 'Buscando rutas cerca de ti...';
+
+    setTimeout(() => {
+      // Get routes near origin
+      const foundRoutes = getRoutesNearby(originVal);
+      renderRoutes(foundRoutes);
+      renderVehicles(null);
+      updateMap(null);
+      renderRiskZones([]);
+    }, 1000);
+  });
+
+  // Report form submission handler
+  $reportForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const type = $reportForm.reportType.value;
+    const desc = $reportForm.reportDescription.value.trim();
+
+    if (!type || !desc) {
+      alert('Por favor, completa todos los campos del reporte.');
+      return;
+    }
+
+    // Create new report with current timestamp and dummy location based on selected route or general
+    const newReport = {
+      id: INCIDENT_REPORTS.length + 1,
+      type: type,
+      description: desc,
+      timestamp: Date.now(),
+      location: currentSelectedRouteId ? ROUTES.find(r => r.id === currentSelectedRouteId).origin : 'Ubicación general'
+    };
+    INCIDENT_REPORTS.push(newReport);
+
+    $reportForm.reset();
+    renderReports();
+
+    alert('Reporte enviado. Gracias por ayudar a la comunidad.');
+  });
+
+  // Panic button handler
+  $panicButton.addEventListener('click', () => {
+    // Simulate alert to authorities by showing modal or alert
+    if (confirm('¿Estás seguro de activar el botón de pánico? Esto alertará a las autoridades locales.')) {
+      alert('Alerta enviada a las autoridades locales. Mantente seguro y espera ayuda.');
+    }
+  });
+
+  // Mobile menu toggle
+  $mobileMenuToggle.addEventListener('click', () => {
+    $mobileNavOverlay.classList.add('show');
+  });
+  $mobileNavClose.addEventListener('click', () => {
+    $mobileNavOverlay.classList.remove('show');
+  });
+
+  // Close mobile nav on link click
+  [...$mobileNavOverlay.querySelectorAll('a')].forEach(link => {
+    link.addEventListener('click', () => {
+      $mobileNavOverlay.classList.remove('show');
+    });
+  });
+
+  // Initial Renderings
+  renderReports();
+  renderGlobalRiskPatterns();
+  updateMap(null);
+
+  // Accessibility: focus trap for mobile nav (optional enhancement)
+  $mobileNavOverlay.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      $mobileNavOverlay.classList.remove('show');
+      $mobileMenuToggle.focus();
+    }
+  });
+</script>
+
+</body>
+</html>
+
