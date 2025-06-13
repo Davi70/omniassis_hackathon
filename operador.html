@@ -2,72 +2,94 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel del Operador</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 20px;
     }
 
     .container {
       text-align: center;
       background-color: rgba(255, 255, 255, 0.1);
-      padding: 40px;
+      padding: clamp(20px, 5vw, 40px);
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      width: 100%;
       max-width: 500px;
-      width: 90%;
+      backdrop-filter: blur(5px);
     }
 
     h1 {
-      font-size: 2em;
+      font-size: clamp(1.5rem, 6vw, 2rem);
       margin-bottom: 10px;
       color: #00d4ff;
     }
 
     p {
-      font-size: 1.1em;
-      margin-bottom: 20px;
+      font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+      margin-bottom: clamp(15px, 4vw, 20px);
+      line-height: 1.5;
     }
 
     .botones {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin-top: 20px;
+      gap: clamp(10px, 3vw, 15px);
+      margin-top: clamp(15px, 4vw, 20px);
     }
 
     .botones a {
       background-color: #00d4ff;
       color: #000;
       text-decoration: none;
-      padding: 12px;
+      padding: clamp(10px, 3vw, 12px);
       border-radius: 10px;
       font-weight: bold;
       transition: all 0.3s ease;
+      font-size: clamp(0.8rem, 3vw, 1rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .botones a:hover {
       background-color: #00a3cc;
       color: #fff;
+      transform: translateY(-2px);
     }
 
     .icono {
-      font-size: 50px;
-      margin-bottom: 15px;
+      font-size: clamp(40px, 10vw, 50px);
+      margin-bottom: clamp(10px, 3vw, 15px);
       animation: flotar 2s ease-in-out infinite;
     }
 
     @keyframes flotar {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
+    }
+
+    /* Mejoras para pantallas muy pequeñas */
+    @media (max-width: 350px) {
+      .botones a {
+        flex-direction: column;
+        gap: 5px;
+      }
     }
   </style>
 </head>
