@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transporte Seguro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111827;
+      color: white;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #1f2937;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.4rem 0;
+      border-radius: 0.5rem;
+      border: none;
+    }
+    .btn {
+      background: linear-gradient(to right, #3b82f6, #10b981);
+      color: white;
+      font-weight: bold;
+    }
+    .info-box, .routes, .nfc-modal {
+      background: #374151;
+      border-radius: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+    }
+    .nfc-modal {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -20%);
+      width: 300px;
+      z-index: 10;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 9;
+    }
+    .route-item {
+      background: #1f2937;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      margin: 0.5rem 0;
+    }
+    .green { color: #10b981; }
+    .orange { color: #f89a0d; }
+    .yellow { color: #facc15; }
+    .red { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>Transporte público inteligente y seguro</h3>
+    <input type="text" placeholder="Origen" id="origen">
+    <input type="text" placeholder="Destino" id="destino">
+    <button class="btn" onclick="mostrarRutas()">✈ Buscar ruta</button>
+
+    <div style="display: flex; justify-content: space-between;">
+      <button class="btn" onclick="mostrarNFC()">Pago NFC</button>
+      <button class="btn" onclick="alert('Simulando escaneo de código QR')">Escanear QR</button>
+    </div>
+
+    <div class="info-box">
+      <h4>🔎 Análisis de Seguridad</h4>
+      <p>Seguridad promedio: <span class="red">0.0%</span></p>
+      <p>⏰ Hora pico: Mayor vigilancia en rutas principales</p>
+      <p>🤖 Inteligencia colectiva: 318 usuarios reportando</p>
+      <p>⚠️ Alertas activas: Sin incidentes reportados</p>
+      <small>Datos actualizados hace <span class="green">2 minutos</span></small>
+    </div>
+
+    <div class="routes" id="rutas" style="display: none;">
+      <h4>🚌 Rutas cercanas</h4>
+      <div class="route-item">
+        <strong>RUTA 5 Línea Central</strong> <span class="orange">Seguridad: 64.4%</span><br>
+        Llegada: 8 min (150m), 3 paradas
+      </div>
+
+      <div id="mapaSimulado" style="display:none; margin-top: 1rem; position: relative; height: 200px; background: #111827 url('https://i.imgur.com/YeGcl6C.png') center/cover no-repeat; border-radius: 1rem; overflow: hidden;">
+  <div id="camion" style="
+    position: absolute;
+    top: 80%;
+    left: 0;
+    font-size: 1.5rem;
+    transition: left 0.4s linear;
+  ">🚍</div>
+</div>
+
+      <div class="route-item">
+        <strong>RUTA 1 </strong> <span class="yellow">Seguridad: 88.9%</span><br>
+        Llegada: 6 min (280m), 3 paradas <br>
+        Ruta mas rapida y conveniente ☑☑
+      </div>
+      <div class="route-item">
+        <strong>RUTA 7 Franja Verde</strong> <span class="green">Seguridad: 92.5%</span><br>
+        Llegada: 11 min (420m), 3 paradas
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="nfc-modal" id="nfcModal">
+    <h3>Pago NFC</h3>
+    <p>Toca para activar el pago NFC</p>
+    <p>Tarifa: <strong>$2.50</strong></p>
+    <button class="btn" onclick="iniciarPagoNFC()">Iniciar Pago NFC</button>
+    <small>
+      • Mantén tu dispositivo cerca del lector<br>
+      • El pago se procesará automáticamente<br>
+      • Compatible con tarjetas contactless
+    </small>
+    <button class="btn" style="margin-top: 10px; background: #ef4444;" onclick="cerrarNFC()">Cerrar</button>
+  </div>
+
+    <!-- Botón SOS flotante -->
+  <div id="sosBtn" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: red;
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 50%;
+    font-weight: bold;
+    cursor: grab;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(255,0,0,0.8);
+  " onclick="alertaSOS()">SOS</div>
+
+  <script>
+    function alertaSOS() {
+  const confirmacion = confirm("¿Estás seguro de activar la alerta SOS y contactar a las autoridades?");
+  if (confirmacion) {
+    alert("⚠️ ALERTA ENVIADA\nAutoridades locales han sido notificadas.");
+  }
+}
+
+
+    // Hacer el botón SOS movible
+    const sosBtn = document.getElementById("sosBtn");
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    sosBtn.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      offsetX = e.clientX - sosBtn.getBoundingClientRect().left;
+      offsetY = e.clientY - sosBtn.getBoundingClientRect().top;
+      sosBtn.style.cursor = 'grabbing';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        sosBtn.style.left = `${e.clientX - offsetX}px`;
+        sosBtn.style.top = `${e.clientY - offsetY}px`;
+        sosBtn.style.right = 'auto';
+        sosBtn.style.bottom = 'auto';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      sosBtn.style.cursor = 'grab';
+    });
+    function mostrarRutas() {
+      document.getElementById("rutas").style.display = "block";
+    }
+
+    function mostrarNFC() {
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("nfcModal").style.display = "block";
+    }
+
+    function cerrarNFC() {
+      document.getElementById("overlay").style.display = "none";
+      document.getElementById("nfcModal").style.display = "none";
+    }
+
+    function iniciarPagoNFC() {
+      alert("Pago NFC simulado exitosamente");
+      cerrarNFC();
+    }
+    function mostrarRutas() {
+  document.getElementById("rutas").style.display = "block";
+  document.getElementById("mapaSimulado").style.display = "block";
+  iniciarSimulacionCamion();
+}
+function iniciarSimulacionCamion() {
+  const camion = document.getElementById("camion");
+  let pos = 0;
+  camion.style.left = "0px";
+  const intervalo = setInterval(() => {
+    pos += 10;
+    camion.style.left = pos + "px";
+
+    if (pos >= 400) {
+      clearInterval(intervalo);
+      camion.innerText = "✅";
+    }
+  }, 300); // velocidad del camión
+}
+
+  </script>
+</body>
+</html>
